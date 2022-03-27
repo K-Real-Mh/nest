@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { NewsService } from './news.service';
 import { News } from './news.interface';
+import { htmlTemplate } from '../views/template';
+import { newsTemplate } from '../views/news';
 
 @Controller('news')
 export class NewsController {
@@ -9,6 +11,11 @@ export class NewsController {
   @Get('/all/')
   async getNews(): Promise<News[]> {
     return this.newsService.findAll();
+  }
+
+  @Post()
+  async create(@Body() news: News): Promise<number> {
+    return this.newsService.create(news);
   }
 
   @Post('/update/:id')
@@ -21,5 +28,11 @@ export class NewsController {
       return 'Success!';
     }
     throw new Error('Fail');
+  }
+
+  @Get()
+  async getViewAll(): Promise<string> {
+    const news = this.newsService.findAll();
+    return htmlTemplate(newsTemplate(news));
   }
 }
