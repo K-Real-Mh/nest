@@ -17,14 +17,15 @@ export class NewsService {
     return this.news.push(news);
   }
 
-  update(id: number, data: News): News | null {
-    let existingNews = this.findByIndex(id);
+  update(id: string, data: News): News | null {
+    let existingNews = this.findById(id);
     if (existingNews) {
       existingNews = {
         ...existingNews,
         ...data,
       };
-      this.news[data.id] = existingNews;
+      const index = this.news.findIndex((el) => el.id === id);
+      this.news[index] = existingNews;
       return this.news[data.id];
     }
     return null;
@@ -34,13 +35,14 @@ export class NewsService {
     return this.news;
   }
 
-  findByIndex(index: number): News | null {
+  findById(id: string): News | null {
+    const existingNews = this.news.find((el) => el.id === id);
     console.assert(
-      typeof this.news[index] !== 'undefined',
+      typeof existingNews !== 'undefined',
       '[findByIndex] Invalid',
     );
-    if (typeof this.news[index] !== 'undefined') {
-      return this.news[index];
+    if (typeof existingNews !== 'undefined') {
+      return existingNews;
     }
     return null;
   }
