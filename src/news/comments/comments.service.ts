@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import { Comment } from './comment.interface';
 
 @Injectable()
 export class CommentsService {
-  private readonly comments = {};
+  private readonly comments: { [k: string]: Comment[] } = {};
 
   async create(idNews: string, comment: string): Promise<number> {
     if (!this.comments?.[idNews]) {
@@ -15,7 +16,7 @@ export class CommentsService {
     });
   }
 
-  async findAll(idNews: string): Promise<{ comment; id } | undefined> {
+  async findAll(idNews: string): Promise<Comment[] | undefined> {
     return this.comments?.[idNews];
   }
 
@@ -23,6 +24,22 @@ export class CommentsService {
     const index = this.comments?.[idNews].findIndex((x) => x.id === idComment);
     if (index !== -1) {
       this.comments[idNews].splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  async update(
+    idNews: string,
+    idComment: string,
+    comment: string,
+  ): Promise<boolean> {
+    const index = this.comments?.[idNews].findIndex((x) => x.id === idComment);
+    if (index !== -1) {
+      this.comments[idNews][index] = {
+        ...this.comments[idNews][index],
+        comment,
+      };
       return true;
     }
     return false;
