@@ -19,8 +19,12 @@ export class CommentsController {
     return this.commentsService.findAll(idNews);
   }
   @Post()
-  create(@Query('idNews') idNews, @Body() comment): Promise<number> {
-    return this.commentsService.create(idNews, comment);
+  create(
+    @Query('idNews') idNews,
+    @Query('idParent') idParent,
+    @Body() comment: Comment,
+  ): Promise<number> {
+    return this.commentsService.create(idNews, idParent, comment.comment);
   }
   @Delete(':id')
   remove(@Query('idNews') idNews, @Param('id') idComment): Promise<boolean> {

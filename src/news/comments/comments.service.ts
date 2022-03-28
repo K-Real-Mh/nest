@@ -6,14 +6,29 @@ import { Comment } from './comment.interface';
 export class CommentsService {
   private readonly comments: { [k: string]: Comment[] } = {};
 
-  async create(idNews: string, comment: string): Promise<number> {
+  async create(
+    idNews: string,
+    idParent: string | undefined,
+    comment: string,
+  ): Promise<number> {
     if (!this.comments?.[idNews]) {
       this.comments[idNews] = [];
     }
-    return this.comments[idNews].push({
-      comment,
-      id: uuidv4(),
-    });
+
+    const index = this.comments?.[idNews].findIndex((x) => x.id === idParent);
+
+    if (!idParent || index === -1) {
+      return this.comments[idNews].push({
+        comment,
+        id: uuidv4(),
+        reply: [],
+      });
+    } else {
+      this.comments[idNews][index].reply.push({
+        comment,
+        id: uuidv4(),
+      });
+    }
   }
 
   async findAll(idNews: string): Promise<Comment[] | undefined> {
