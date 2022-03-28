@@ -5,7 +5,7 @@ import { News } from './news.interface';
 export class NewsService {
   private readonly news: News[] = [
     {
-      id: 1,
+      id: '1',
       title: 'first',
       description: 'first',
       author: 'first',
@@ -45,5 +45,14 @@ export class NewsService {
       return existingNews;
     }
     return null;
+  }
+
+  async remove(id: string): Promise<boolean> {
+    const index = this.news.findIndex((el) => el.id === id);
+    if (index) {
+      this.news.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 }
