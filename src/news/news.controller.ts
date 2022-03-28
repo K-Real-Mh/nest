@@ -4,6 +4,7 @@ import { News } from './news.interface';
 import { htmlTemplate } from '../views/template';
 import { newsTemplate } from '../views/news';
 import { CommentsService } from './comments/comments.service';
+import { detailTemplate } from '../views/detail';
 
 @Controller('news')
 export class NewsController {
@@ -45,5 +46,13 @@ export class NewsController {
   async getViewAll(): Promise<string> {
     const news = this.newsService.findAll();
     return htmlTemplate(newsTemplate(news));
+  }
+
+  @Get(':id/detail')
+  async getView(@Param('id') id): Promise<string> {
+    const news = this.newsService.findById(id);
+    const comments = await this.commentService.findAll(id);
+
+    return detailTemplate(news, comments);
   }
 }
