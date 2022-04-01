@@ -10,6 +10,7 @@ export class CommentsService {
     idNews: string,
     idParent: string | undefined,
     comment: string,
+    avatar?: string,
   ): Promise<number> {
     if (!this.comments?.[idNews]) {
       this.comments[idNews] = [];
@@ -20,12 +21,14 @@ export class CommentsService {
     if (!idParent || index === -1) {
       return this.comments[idNews].push({
         comment,
+        avatar,
         id: uuidv4(),
         reply: [],
       });
     } else {
       this.comments[idNews][index].reply.push({
         comment,
+        avatar,
         id: uuidv4(),
       });
     }
