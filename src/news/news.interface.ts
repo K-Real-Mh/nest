@@ -1,7 +1,8 @@
 export interface News {
-  id: number;
+  id: string;
   title: string;
   description: string;
   author?: string;
-  createdAt: Date;
+  cover?: string;
+  createdAt: Date | string;
 }
