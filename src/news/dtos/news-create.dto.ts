@@ -18,6 +18,10 @@ export class NewsCreateDto {
   @IsString()
   author: string;
 
+  @ValidateIf((o) => o.cover)
+  @IsString()
+  cover: string;
+
   @IsNotEmpty()
   @IsDateString()
   createdAt: string;

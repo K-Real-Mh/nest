@@ -9,16 +9,16 @@ export const newsTemplate = (news: News[]) => {
     html += `
         <div class="col-lg-6">
           <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">${newsItem.title}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">
-              Автор: ${newsItem.author}
-              </h6>
-              <h6 class="card-subtitle mb-2 text-muted">
-              Дата создания: ${newsItem.createdAt}
-              </h6>
-              <p class="card-text">${newsItem.description}</p>
-            </div>
+          <img src='http://localhost:3000/${newsItem?.cover}' class="card-img-top"
+          style="height: 200px; object-fit: cover;" alt=''>
+          <div class="card-body">
+            <h5 class="card-title">${newsItem.title}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Автор:
+            ${newsItem.author}</h6>
+            <h6 class="card-subtitle mb-2 text-muted">Дата создания:
+            ${newsItem.createdAt}</h6>
+            <p class="card-text">${newsItem.description}</p>
+          </div>
           </div>
         </div>
       `;

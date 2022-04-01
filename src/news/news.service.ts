@@ -12,6 +12,7 @@ export class NewsService {
       description: 'first',
       author: 'first',
       createdAt: new Date(Date.now()),
+      cover: '/news-static/be1b9360-240b-49c1-889b-877eb0231b82.gif',
     },
   ];
 

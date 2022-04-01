@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
 import { NewsService } from './news.service';
 import { News } from './news.interface';
 import { htmlTemplate } from '../views/template';
@@ -7,6 +16,13 @@ import { CommentsService } from './comments/comments.service';
 import { detailTemplate } from '../views/detail';
 import { NewsIdDto } from './dtos/news-id.dto';
 import { NewsCreateDto } from './dtos/news-create.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { HelperFileLoader } from '../utils/HelperFileLoader';
+import { diskStorage } from 'multer';
+
+const PATH_NEWS = '/news-static/';
+const helperFileLoader = new HelperFileLoader();
+helperFileLoader.path = PATH_NEWS;
 
 @Controller('news')
 export class NewsController {
@@ -15,19 +31,38 @@ export class NewsController {
     private readonly commentService: CommentsService,
   ) {}
 
+  @Get('template')
+  async getViewAll(): Promise<string> {
+    const news = this.newsService.findAll();
+    return htmlTemplate(newsTemplate(news));
+  }
+
   @Get('/all/')
   async getNews(): Promise<News[]> {
     return this.newsService.findAll();
   }
 
-  @Get(':id')
-  async getById(@Param() params: NewsIdDto): Promise<News | undefined> {
-    return this.newsService.findById(params.id);
-  }
-
   @Post()
-  async create(@Body() news: NewsCreateDto): Promise<number> {
-    return this.newsService.create(news);
+  @UseInterceptors(
+    FilesInterceptor('cover', 1, {
+      storage: diskStorage({
+        destination: helperFileLoader.destinationPath,
+        filename: helperFileLoader.customFileName,
+      }),
+    }),
+  )
+  async create(
+    @Body() news: NewsCreateDto,
+    @UploadedFiles() cover: Express.Multer.File,
+  ) {
+    let coverPath;
+    if (cover[0]?.filename?.length > 0) {
+      coverPath = PATH_NEWS + cover[0].filename;
+    }
+    return this.newsService.create({
+      ...news,
+      cover: coverPath,
+    });
   }
 
   @Post('/update/:id')
@@ -50,10 +85,9 @@ export class NewsController {
     );
   }
 
-  @Get()
-  async getViewAll(): Promise<string> {
-    const news = this.newsService.findAll();
-    return htmlTemplate(newsTemplate(news));
+  @Get('/:id')
+  async getById(@Param() params: NewsIdDto): Promise<News | undefined> {
+    return this.newsService.findById(params.id);
   }
 
   @Get(':id/detail')
@@ -63,4 +97,16 @@ export class NewsController {
 
     return detailTemplate(news, comments);
   }
+
+  @Post('upload')
+  @UseInterceptors(
+    FilesInterceptor('file', 5, {
+      storage: diskStorage({
+        destination: helperFileLoader.destinationPath,
+        filename: helperFileLoader.customFileName,
+      }),
+    }),
+  )
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  uploadFile(@UploadedFiles() file: Express.Multer.File[]) {}
 }
