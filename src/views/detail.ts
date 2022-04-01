@@ -40,7 +40,14 @@ const commentsTemplate = (comments: Comment[]) => {
   let html = '<ul>';
   for (const comment of comments) {
     html += `
-      <li>${comment.comment}</li>
+      <li>
+        ${
+          comment.avatar
+            ? `<img src="${comment.avatar}" width="45" height="45">`
+            : ''
+        }
+        ${comment.comment}
+      </li>
     `;
   }
   html += '</ul>';
