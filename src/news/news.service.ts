@@ -16,8 +16,9 @@ export class NewsService {
     },
   ];
 
-  create(news: NewsCreateDto): number {
-    return this.news.push({ id: uuidv4(), ...news });
+  create(news: NewsCreateDto): News {
+    const idx = this.news.push({ id: uuidv4(), ...news });
+    return this.news[idx - 1];
   }
 
   update(id: string, data: News): News | null {

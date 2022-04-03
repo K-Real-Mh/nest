@@ -12,14 +12,4 @@ export class AppController {
   getHello(): { message: string } {
     return { message: 'Hello world!' };
   }
-
-  @Get(':id')
-  async findOne(@Param() params: FindOneParams): Promise<string> {
-    return 'This action returns a user';
-  }
-
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<string> {
-    return 'This action adds a new user';
-  }
 }

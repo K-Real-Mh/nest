@@ -19,6 +19,7 @@ import { NewsCreateDto } from './dtos/news-create.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { HelperFileLoader } from '../utils/HelperFileLoader';
 import { diskStorage } from 'multer';
+import { MailService } from '../mail/mail.service';
 
 const PATH_NEWS = '/news-static/';
 const helperFileLoader = new HelperFileLoader();
@@ -29,6 +30,7 @@ export class NewsController {
   constructor(
     private readonly newsService: NewsService,
     private readonly commentService: CommentsService,
+    private mailService: MailService,
   ) {}
 
   @Get('template')
@@ -59,10 +61,15 @@ export class NewsController {
     if (cover[0]?.filename?.length > 0) {
       coverPath = PATH_NEWS + cover[0].filename;
     }
-    return this.newsService.create({
+    const _news = this.newsService.create({
       ...news,
       cover: coverPath,
     });
+    await this.mailService.sendNewNewsForAdmins(
+      ['kir.mahoff@yandex.ru'],
+      _news,
+    );
+    return _news;
   }
 
   @Post('/update/:id')
