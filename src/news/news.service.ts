@@ -21,7 +21,7 @@ export class NewsService {
     return this.news[idx - 1];
   }
 
-  update(id: string, data: News): News | null {
+  update(id: string, data: NewsCreateDto): { new: News; old: News } | null {
     let existingNews = this.findById(id);
     if (existingNews) {
       existingNews = {
@@ -29,8 +29,9 @@ export class NewsService {
         ...data,
       };
       const index = this.news.findIndex((el) => el.id === id);
+      const oldNews = this.news[index];
       this.news[index] = existingNews;
-      return this.news[data.id];
+      return { new: this.news[index], old: oldNews };
     }
     return null;
   }

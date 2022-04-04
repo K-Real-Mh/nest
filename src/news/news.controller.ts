@@ -75,10 +75,14 @@ export class NewsController {
   @Post('/update/:id')
   async createPost(
     @Param('id') id: string,
-    @Body() data: News,
+    @Body() data: NewsCreateDto,
   ): Promise<string> {
     const result = this.newsService.update(id, data);
     if (result) {
+      await this.mailService.sendNewUpdateForAdmins(
+        ['kir.mahoff@yandex.ru'],
+        result,
+      );
       return 'Success!';
     }
     throw new Error('Fail');

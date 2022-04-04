@@ -25,4 +25,26 @@ export class MailService {
         });
     }
   }
+
+  async sendNewUpdateForAdmins(
+    emails: string[],
+    news: { new: News; old: News },
+  ): Promise<void> {
+    console.log('Отправляются письма о новой новости администрации ресурса');
+    for (const email of emails) {
+      await this.mailerService
+        .sendMail({
+          to: email,
+          subject: `Обновлена новость: ${news.old.title}`,
+          template: 'update-news',
+          context: news,
+        })
+        .then((res) => {
+          console.log('res', res);
+        })
+        .catch((err) => {
+          console.log('err', err);
+        });
+    }
+  }
 }
