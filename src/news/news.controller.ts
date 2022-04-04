@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Render,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -40,8 +41,12 @@ export class NewsController {
   }
 
   @Get('/all/')
-  async getNews(): Promise<News[]> {
-    return this.newsService.findAll();
+  @Render('news')
+  getNews(): News[] {
+    console.log(this.newsService.findAll());
+    const news = this.newsService.findAll();
+    return news;
+    // return this.newsService.findAll();
   }
 
   @Post()
