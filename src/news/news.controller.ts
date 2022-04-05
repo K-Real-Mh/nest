@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Render,
+  UploadedFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,6 +22,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { HelperFileLoader } from '../utils/HelperFileLoader';
 import { diskStorage } from 'multer';
 import { MailService } from '../mail/mail.service';
+import { NewsEntity } from './news.entity';
 
 const PATH_NEWS = '/news-static/';
 const helperFileLoader = new HelperFileLoader();
@@ -34,20 +36,20 @@ export class NewsController {
     private mailService: MailService,
   ) {}
 
-  @Get('template')
-  async getViewAll(): Promise<string> {
-    const news = this.newsService.findAll();
-    return htmlTemplate(newsTemplate(news));
-  }
-
-  @Get('/all/')
-  @Render('news')
-  getNews(): News[] {
-    console.log(this.newsService.findAll());
-    const news = this.newsService.findAll();
-    return news;
-    // return this.newsService.findAll();
-  }
+  // @Get('template')
+  // async getViewAll(): Promise<string> {
+  //   const news = this.newsService.findAll();
+  //   return htmlTemplate(newsTemplate(news));
+  // }
+  //
+  // @Get('/all/')
+  // @Render('news')
+  // getNews(): News[] {
+  //   console.log(this.newsService.findAll());
+  //   const news = this.newsService.findAll();
+  //   return news;
+  //   // return this.newsService.findAll();
+  // }
 
   @Post()
   @UseInterceptors(
@@ -60,16 +62,16 @@ export class NewsController {
   )
   async create(
     @Body() news: NewsCreateDto,
-    @UploadedFiles() cover: Express.Multer.File,
+    @UploadedFile() cover: Express.Multer.File,
   ) {
-    let coverPath;
-    if (cover[0]?.filename?.length > 0) {
-      coverPath = PATH_NEWS + cover[0].filename;
+    const _newsEntity = new NewsEntity(); // создаём пустую entity-схему
+    if (cover?.filename?.length > 0) {
+      _newsEntity.cover = PATH_NEWS + cover.filename; // записываем в поле cover - значения;
     }
-    const _news = this.newsService.create({
-      ...news,
-      cover: coverPath,
-    });
+    _newsEntity.title = news.title; // записываем в поле title-значения
+    _newsEntity.description = news.description; // записываем в поле description - значения;
+    // Обращаемся к методу сервиса и передаём созданную схему
+    const _news = await this.newsService.create(_newsEntity);
     await this.mailService.sendNewNewsForAdmins(
       ['kir.mahoff@yandex.ru'],
       _news,
@@ -77,52 +79,40 @@ export class NewsController {
     return _news;
   }
 
-  @Post('/update/:id')
-  async createPost(
-    @Param('id') id: string,
-    @Body() data: NewsCreateDto,
-  ): Promise<string> {
-    const result = this.newsService.update(id, data);
-    if (result) {
-      await this.mailService.sendNewUpdateForAdmins(
-        ['kir.mahoff@yandex.ru'],
-        result,
-      );
-      return 'Success!';
-    }
-    throw new Error('Fail');
-  }
+  // @Post('/update/:id')
+  // async createPost(
+  //   @Param('id') id: string,
+  //   @Body() data: NewsCreateDto,
+  // ): Promise<string> {
+  //   const result = this.newsService.update(id, data);
+  //   if (result) {
+  //     await this.mailService.sendNewUpdateForAdmins(
+  //       ['kir.mahoff@yandex.ru'],
+  //       result,
+  //     );
+  //     return 'Success!';
+  //   }
+  //   throw new Error('Fail');
+  // }
+  //
+  // @Delete(':id')
+  // async remove(@Param() params: NewsIdDto): Promise<boolean> {
+  //   return (
+  //     this.newsService.remove(params.id) &&
+  //     this.commentService.removeAll(params.id)
+  //   );
+  // }
 
-  @Delete(':id')
-  async remove(@Param() params: NewsIdDto): Promise<boolean> {
-    return (
-      this.newsService.remove(params.id) &&
-      this.commentService.removeAll(params.id)
-    );
-  }
-
-  @Get('/:id')
-  async getById(@Param() params: NewsIdDto): Promise<News | undefined> {
-    return this.newsService.findById(params.id);
-  }
-
-  @Get(':id/detail')
-  async getView(@Param('id') id): Promise<string> {
-    const news = this.newsService.findById(id);
-    const comments = await this.commentService.findAll(id);
-
-    return detailTemplate(news, comments);
-  }
-
-  @Post('upload')
-  @UseInterceptors(
-    FilesInterceptor('file', 5, {
-      storage: diskStorage({
-        destination: helperFileLoader.destinationPath,
-        filename: helperFileLoader.customFileName,
-      }),
-    }),
-  )
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  uploadFile(@UploadedFiles() file: Express.Multer.File[]) {}
+  // @Get('/:id')
+  // async getById(@Param() params: NewsIdDto): Promise<News | undefined> {
+  //   return this.newsService.findById(params.id);
+  // }
+  //
+  // @Get(':id/detail')
+  // async getView(@Param('id') id): Promise<string> {
+  //   const news = this.newsService.findById(id);
+  //   const comments = await this.commentService.findAll(id);
+  //
+  //   return detailTemplate(news, comments);
+  // }
 }
