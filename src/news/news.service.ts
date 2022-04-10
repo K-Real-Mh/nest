@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NewsCreateDto } from './dtos/news-create.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NewsEntity } from './news.entity';
+import { NewsEntity } from '../database/entities/news.entity';
 
 @Injectable()
 export class NewsService {

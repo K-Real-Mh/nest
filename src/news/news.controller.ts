@@ -22,7 +22,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { HelperFileLoader } from '../utils/HelperFileLoader';
 import { diskStorage } from 'multer';
 import { MailService } from '../mail/mail.service';
-import { NewsEntity } from './news.entity';
+import { NewsEntity } from '../database/entities/news.entity';
 
 const PATH_NEWS = '/news-static/';
 const helperFileLoader = new HelperFileLoader();

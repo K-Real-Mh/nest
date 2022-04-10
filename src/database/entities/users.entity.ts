@@ -6,8 +6,8 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { NewsEntity } from '../news/news.entity';
-import { CommentsEntity } from '../news/comments/comments.entity';
+import { NewsEntity } from './news.entity';
+import { CommentsEntity } from './comments.entity';
 
 @Entity('users')
 export class UsersEntity {

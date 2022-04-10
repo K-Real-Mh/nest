@@ -8,9 +8,12 @@ import { MailModule } from './mail/mail.module';
 import { MailController } from './mail/mail.controller';
 import { MailService } from './mail/mail.service';
 import { UsersModule } from './users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
+    DatabaseModule,
     NewsModule,
     // ServeStaticModule.forRoot({
     //   rootPath: join(__dirname, '..', 'public'),
