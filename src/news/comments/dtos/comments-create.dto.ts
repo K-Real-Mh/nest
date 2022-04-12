@@ -1,15 +1,22 @@
-import { IsNotEmpty, IsString, ValidateIf } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, ValidateIf } from 'class-validator';
 
 export class CommentsCreateDto {
   @IsNotEmpty()
   @IsString()
   text: string;
+
   @ValidateIf((o) => o.avatar)
   @IsString()
   avatar: string;
+
   @IsNotEmpty()
-  @IsString()
-  idNews: string;
+  @IsNumber()
+  newsId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  authorId: number;
+
   @ValidateIf((o) => o.idParent)
   @IsString()
   idParent: string;

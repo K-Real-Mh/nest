@@ -2,20 +2,19 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
-  Param,
+  HttpException,
+  HttpStatus,
   Patch,
   Post,
-  Query,
-  UploadedFiles,
-  UseInterceptors,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
-import { Comment } from './comment.interface';
 import { CommentsCreateDto } from './dtos/comments-create.dto';
 import { HelperFileLoader } from '../../utils/HelperFileLoader';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { CommentsEntity } from '../../database/entities/comments.entity';
+import { UsersService } from '../../users/users.service';
+import { NewsService } from '../news.service';
+import { CommentsUpdateDto } from './dtos/comments-update.dto';
+import { CommentsDeleteDto } from './dtos/comments-delete.dto';
 
 const PATH_NEWS = '/news-static/comments-static/';
 const helperFileLoader = new HelperFileLoader();
@@ -23,56 +22,47 @@ helperFileLoader.path = PATH_NEWS;
 
 @Controller('comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
-
-  @Get('all')
-  getAll(@Query('idNews') idNews): Promise<Comment[]> {
-    return this.commentsService.findAll(idNews);
-  }
+  constructor(
+    private readonly commentsService: CommentsService,
+    private readonly usersService: UsersService,
+    private readonly newsService: NewsService,
+  ) {}
 
   @Post()
-  @UseInterceptors(
-    FilesInterceptor('avatar', 1, {
-      storage: diskStorage({
-        destination: helperFileLoader.destinationPath,
-        filename: helperFileLoader.customFileName,
-      }),
-    }),
-  )
-  create(
-    @Body() comments: CommentsCreateDto,
-    // @Query('idNews') idNews,
-    // @Query('idParent') idParent,
-    @UploadedFiles() avatar: Express.Multer.File,
-  ): Promise<number> {
-    let avatarPath;
-    if (avatar && avatar[0]?.filename?.length > 0) {
-      avatarPath = PATH_NEWS + avatar[0].filename;
+  async create(@Body() comment: CommentsCreateDto): Promise<CommentsEntity> {
+    // Поиск пользователя по его ID
+    const _user = await this.usersService.findById(comment.authorId);
+    if (!_user) {
+      throw new HttpException(
+        'Не существует такого автора',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    return this.commentsService.create(
-      comments.idNews,
-      comments.idParent,
-      comments.text,
-      avatarPath,
-    );
+
+    // Поиск новости по его ID
+    const _news = await this.newsService.findById(comment.newsId);
+    if (!_news) {
+      throw new HttpException(
+        'Не существует такой новости',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const _commentsEntity = new CommentsEntity();
+    _commentsEntity.message = comment.text;
+    _commentsEntity.user = _user;
+    _commentsEntity.news = _news;
+
+    return await this.commentsService.create(_commentsEntity);
   }
 
-  @Delete(':id')
-  remove(@Query('idNews') idNews, @Param('id') idComment): Promise<boolean> {
-    return this.commentsService.remove(idNews, idComment);
+  @Patch()
+  async update(@Body() comment: CommentsUpdateDto): Promise<CommentsEntity> {
+    return await this.commentsService.update(comment);
   }
 
-  @Patch(':id')
-  update(
-    @Query('idNews') idNews,
-    @Param('id') idComment,
-    @Body() comment: CommentsCreateDto,
-  ): Promise<boolean> {
-    return this.commentsService.update(idNews, idComment, comment.text);
-  }
-
-  @Delete('all')
-  removeAll(@Query('idNews') idNews): Promise<boolean> {
-    return this.commentsService.removeAll(idNews);
+  @Delete()
+  async delete(@Body() comment: CommentsDeleteDto): Promise<CommentsEntity> {
+    return await this.commentsService.delete(comment.commentId);
   }
 }

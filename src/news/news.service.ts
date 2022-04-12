@@ -1,63 +1,61 @@
-import { Injectable } from '@nestjs/common';
-import { News } from './news.interface';
-import { v4 as uuidv4 } from 'uuid';
-import { NewsCreateDto } from './dtos/news-create.dto';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { NewsEntity } from '../database/entities/news.entity';
+import { NewsUpdateDto } from './dtos/news-update.dto';
 
 @Injectable()
 export class NewsService {
-  private readonly news: News[] = [
-    {
-      id: '1',
-      title: 'first',
-      description: 'first',
-      author: 'first',
-      createdAt: new Date(Date.now()),
-      cover: '/news-static/be1b9360-240b-49c1-889b-877eb0231b82.gif',
-    },
-  ];
+  constructor(
+    @InjectRepository(NewsEntity)
+    private readonly newsRepository: Repository<NewsEntity>,
+  ) {}
 
-  create(news: NewsCreateDto): News {
-    const idx = this.news.push({ id: uuidv4(), ...news });
-    return this.news[idx - 1];
+  async create(news: NewsEntity): Promise<NewsEntity> {
+    return await this.newsRepository.save(news);
   }
 
-  update(id: string, data: NewsCreateDto): { new: News; old: News } | null {
-    let existingNews = this.findById(id);
-    if (existingNews) {
-      existingNews = {
-        ...existingNews,
-        ...data,
-      };
-      const index = this.news.findIndex((el) => el.id === id);
-      const oldNews = this.news[index];
-      this.news[index] = existingNews;
-      return { new: this.news[index], old: oldNews };
+  async update(news: NewsUpdateDto, cover?: string): Promise<NewsEntity> {
+    const newsToUpdate = await this.newsRepository.findOne({
+      id: news.newsId,
+    });
+
+    if (!newsToUpdate) {
+      throw new HttpException(
+        'Не существует такой новости',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    return null;
+
+    return await this.newsRepository.save({
+      ...newsToUpdate,
+      ...news,
+      cover,
+    });
   }
 
-  findAll(): News[] {
-    return this.news;
-  }
-
-  findById(id: string): News | null {
-    const existingNews = this.news.find((el) => el.id === id);
-    console.assert(
-      typeof existingNews !== 'undefined',
-      '[findByIndex] Invalid',
+  async findAll(userId?: number): Promise<NewsEntity[]> {
+    return await this.newsRepository.find(
+      userId
+        ? {
+            user: {
+              id: userId,
+            },
+          }
+        : {},
     );
-    if (typeof existingNews !== 'undefined') {
-      return existingNews;
-    }
-    return null;
   }
 
-  async remove(id: string): Promise<boolean> {
-    const index = this.news.findIndex((el) => el.id === id);
-    if (index) {
-      this.news.splice(index, 1);
-      return true;
-    }
-    return false;
+  async findById(id: number): Promise<NewsEntity> {
+    return await this.newsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async remove(id: number): Promise<NewsEntity> {
+    const _news = await this.findById(id);
+    return await this.newsRepository.remove(_news);
   }
 }
