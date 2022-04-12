@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Render,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import { NewsCreateDto } from './dtos/news-create.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { HelperFileLoader } from '../utils/HelperFileLoader';
 import { diskStorage } from 'multer';
+import { MailService } from '../mail/mail.service';
 
 const PATH_NEWS = '/news-static/';
 const helperFileLoader = new HelperFileLoader();
@@ -29,6 +31,7 @@ export class NewsController {
   constructor(
     private readonly newsService: NewsService,
     private readonly commentService: CommentsService,
+    private mailService: MailService,
   ) {}
 
   @Get('template')
@@ -38,8 +41,12 @@ export class NewsController {
   }
 
   @Get('/all/')
-  async getNews(): Promise<News[]> {
-    return this.newsService.findAll();
+  @Render('news')
+  getNews(): News[] {
+    console.log(this.newsService.findAll());
+    const news = this.newsService.findAll();
+    return news;
+    // return this.newsService.findAll();
   }
 
   @Post()
@@ -59,19 +66,28 @@ export class NewsController {
     if (cover[0]?.filename?.length > 0) {
       coverPath = PATH_NEWS + cover[0].filename;
     }
-    return this.newsService.create({
+    const _news = this.newsService.create({
       ...news,
       cover: coverPath,
     });
+    await this.mailService.sendNewNewsForAdmins(
+      ['kir.mahoff@yandex.ru'],
+      _news,
+    );
+    return _news;
   }
 
   @Post('/update/:id')
   async createPost(
     @Param('id') id: string,
-    @Body() data: News,
+    @Body() data: NewsCreateDto,
   ): Promise<string> {
     const result = this.newsService.update(id, data);
     if (result) {
+      await this.mailService.sendNewUpdateForAdmins(
+        ['kir.mahoff@yandex.ru'],
+        result,
+      );
       return 'Success!';
     }
     throw new Error('Fail');

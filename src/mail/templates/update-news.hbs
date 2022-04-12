@@ -1,0 +1,30 @@
+<table>
+  <tr>
+    <td>Название</td>
+    <td>Было:<s>{{old.title}}</s></td>
+    <td>Стало:{{new.title}}</td>
+  </tr>
+  <tr>
+    <td>Описание</td>
+    <td>Было:<s>{{old.description}}</s></td>
+    <td>Стало:{{new.description}}</td>
+  </tr>
+  <tr>
+    <td>Автор</td>
+    <td>Было:<s>{{old.author}}</s></td>
+    <td>Стало:{{new.author}}</td>
+  </tr>
+  <tr>
+    <td>Дата создания</td>
+    <td>Было:<s>{{old.createdAt}}</s></td>
+    <td>Стало:{{new.createdAt}}</td>
+  </tr>
+  <tr>
+    <td>Ссылка на новость</td>
+    <td>
+      <a href='http://localhost:3000/news/{{new.id}}'>
+        http://localhost:3000/news/{{new.id}}
+      </a>
+    </td>
+  </tr>
+</table>
