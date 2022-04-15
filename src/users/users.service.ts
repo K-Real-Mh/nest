@@ -1,9 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersEntity } from '../database/entities/users.entity';
 import { hash } from '../utils/crypto';
 import { Role } from '../auth/role/role.enum';
+import { UserUpdateDto } from './dtos/user-update.dto';
+import { UserCreateDto } from './dtos/user-create.dto';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +21,7 @@ export class UsersService {
 
   // Возвращаемое значение может быть Promise<UsersEntity|undefined>
   // Озвучить устно, что необходимо отработать крайний случай на уровне выше, если запись не произошла
-  async create(user): Promise<UsersEntity | undefined> {
+  async create(user: UserCreateDto): Promise<UsersEntity | undefined> {
     const userEntity = new UsersEntity();
     userEntity.firstName = user.firstName;
     userEntity.lastName = user.lastName;
@@ -44,5 +51,35 @@ export class UsersService {
     }
     _user.role = Role.Moderator;
     return this.usersRepository.save(_user);
+  }
+
+  async update(user: UserUpdateDto): Promise<UsersEntity> {
+    const userToUpdate = await this.usersRepository.findOne({
+      id: user.userId,
+    });
+
+    if (!userToUpdate) {
+      throw new HttpException(
+        'Не существует такого юзера',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    userToUpdate.firstName = user.firstName
+      ? user.firstName
+      : userToUpdate.firstName;
+    userToUpdate.lastName = user.lastName
+      ? user.lastName
+      : userToUpdate.lastName;
+    userToUpdate.email = user.email ? user.email : userToUpdate.email;
+    userToUpdate.role = user.role ? user.role : userToUpdate.role;
+    userToUpdate.password = user.password
+      ? await hash(user.password)
+      : userToUpdate.password;
+
+    return await this.usersRepository.save({
+      ...userToUpdate,
+      ...user,
+    });
   }
 }
