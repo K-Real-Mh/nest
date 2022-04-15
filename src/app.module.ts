@@ -8,6 +8,7 @@ import { MailService } from './mail/mail.service';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
 import { CategoriesModule } from './categories/categories.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CategoriesModule } from './categories/categories.module';
     CategoriesModule,
     NewsModule,
     MailModule,
+    AuthModule,
   ],
   controllers: [AppController, MailController],
   providers: [AppService, MailService],
